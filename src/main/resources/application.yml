@@ -1,0 +1,81 @@
+micronaut:
+  application:
+    name: quintessential-tasklist-zeebe
+  http:
+    client:
+      read-timeout: 5s
+
+datasources:
+  default:
+    url: jdbc:h2:./build/DB/dbdevDb1 # jdbc:h2:~/devDb1;MODE=PostgreSQL;AUTO_SERVER=TRUE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: sa
+    dialect: H2 # POSTGRES
+
+jpa:
+  default:
+    packages-to-scan:
+      - 'com.github.stephenott.qtz.forms'
+      - 'com.github.stephenott.qtz.tasks'
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+        show_sql: true
+
+flyway:
+  datasources:
+    default:
+      locations: classpath:databasemigrations
+
+formValidatorService:
+  host: http://localhost:8081
+
+orchestrator:
+  management:
+    client:
+      brokerContactPoint: localhost:26500
+      longPollTimeout: 30s
+  workflow-linter:
+    rules:
+      global-rules:
+        enable: false
+        description: Global Restrictions for Service Task Types
+        elementTypes:
+          - ServiceTask
+        serviceTaskRule:
+          allowedTypes:
+            - some-type
+            - user-task
+
+      user-task-rule:
+        description: Specific rule for User Task Configuration of Service Tasks
+        elementTypes:
+          - ServiceTask
+        target:
+          serviceTasks:
+            types:
+              - user-task
+        headerRule:
+          requiredKeys:
+            - title
+            - candidateGroups
+            - formKey
+          allowedNonDefinedKeys: false
+          allowedDuplicateKeys: false
+          optionalKeys:
+            - priority
+            - assignee
+            - candidateUsers
+            - dueDate
+            - description
+
+userTask:
+  enabled: false
+  maxBatchSize: 10
+
+executors:
+  python:
+    enabled: false
+    scriptFolder: "./python-scripts"
